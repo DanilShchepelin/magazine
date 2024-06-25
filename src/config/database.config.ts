@@ -1,17 +1,22 @@
 import { registerAs } from '@nestjs/config';
 import { join } from 'path';
+import { config as dotenvConfig } from 'dotenv';
+import { DataSource, DataSourceOptions } from 'typeorm';
+
+dotenvConfig({ path: '.env' });
 
 const isTrue = (value: unknown) => value === 'true';
-export default registerAs('database', () => ({
+const config = {
   type: 'postgres',
   host: process.env.DB_HOST,
   port: process.env.DB_PORT || 5432,
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
-  synchronize: isTrue(process.env.DB_SYNCHRONIZE),
+  synchronize: false,
   logging: isTrue(process.env.DB_LOGGING),
   autoLoadEntities: true,
+  migrations: ['dist/migrations/*{.ts,.js}'],
   subscribers: [join(__dirname, '..', '**', '*.subscriber.{ts,js}')],
   maxQueryExecutionTime: 2000,
   extra: {
@@ -20,4 +25,7 @@ export default registerAs('database', () => ({
     query_timeout: 5000,
     statement_timeout: 5000,
   },
-}));
+};
+
+export default registerAs('database', () => config);
+export const connectionSource = new DataSource(config as DataSourceOptions);
