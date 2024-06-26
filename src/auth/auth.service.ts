@@ -1,4 +1,9 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { CreateUserDto } from '../users/user.dto';
 import { UserEntity } from '../users/user.entity';
@@ -12,7 +17,13 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  register(user: CreateUserDto): Promise<UserEntity> {
+  async register(user: CreateUserDto): Promise<UserEntity> {
+    const existUser: UserEntity | null = await this.userService.repo.findOneBy({
+      email: user.email,
+    });
+    if (existUser) {
+      throw new BadRequestException('User already exists');
+    }
     const model = this.userService.repo.create(user);
     return this.userService.repo.save(model);
   }
@@ -34,7 +45,7 @@ export class AuthService {
     };
   }
 
-  async validateUser(
+  private async validateUser(
     email: string,
     password: string,
   ): Promise<UserEntity | null> {
