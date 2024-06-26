@@ -19,4 +19,8 @@ export class FilterDto extends PageOptionsDto {
   @IsString()
   @IsOptional()
   readonly publishedAt?: string;
+
+  @IsString()
+  @IsOptional()
+  readonly authorName?: string;
 }

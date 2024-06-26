@@ -6,6 +6,7 @@ import { CreateArticleDto, UpdateArticleDto } from './article.dto';
 import { PageDto } from '../app/page.dto';
 import { PageMetaDto } from '../app/page-meta.dto';
 import { FilterDto } from './filter.dto';
+import { UserEntity } from '../users/user.entity';
 
 @Injectable()
 export class ArticlesService {
@@ -19,7 +20,8 @@ export class ArticlesService {
     queryBuilder
       .orderBy('articles.createdAt', pageOptionsDto.order)
       .skip(pageOptionsDto.skip)
-      .take(pageOptionsDto.take);
+      .take(pageOptionsDto.take)
+      .setFindOptions({ relations: { user: true } });
 
     this.applyFilters(queryBuilder, pageOptionsDto);
 
@@ -39,6 +41,7 @@ export class ArticlesService {
     this.filterByDescription(queryBuilder, pageOptionsDto.description);
     this.filterByPublishedStatus(queryBuilder, pageOptionsDto.published);
     this.filterByPublishedAt(queryBuilder, pageOptionsDto.publishedAt);
+    this.filterByAuthor(queryBuilder, pageOptionsDto.authorName);
   }
 
   private filterByTitle(
@@ -82,6 +85,15 @@ export class ArticlesService {
     }
   }
 
+  private filterByAuthor(
+    queryBuilder: SelectQueryBuilder<ArticleEntity>,
+    authorName: string | undefined,
+  ) {
+    if (authorName) {
+      queryBuilder.andWhere({ user: { firstName: authorName } });
+    }
+  }
+
   private getPublishedAtDates(publishedAt: string): {
     startDate: Date;
     endDate: Date;
@@ -100,8 +112,12 @@ export class ArticlesService {
     return this.repo.findOneBy({ slug });
   }
 
-  public create(article: CreateArticleDto): Promise<ArticleEntity> {
-    const model = this.repo.create(article);
+  public create(
+    article: CreateArticleDto,
+    user: UserEntity,
+  ): Promise<ArticleEntity> {
+    const createInput = { ...article, userId: user.id };
+    const model = this.repo.create(createInput);
     return this.repo.save(model);
   }
 

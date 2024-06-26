@@ -25,7 +25,7 @@ export class UserEntity {
   @Index({ unique: true })
   email: string;
 
-  @Column()
+  @Column({ select: false })
   password: string;
 
   @CreateDateColumn({ type: 'timestamptz' }) createdAt!: Date;
