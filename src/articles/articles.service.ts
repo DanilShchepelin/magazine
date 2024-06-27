@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, DeleteResult, Repository, SelectQueryBuilder } from 'typeorm';
 import { ArticleEntity } from './article.entity';
@@ -7,11 +7,14 @@ import { PageDto } from '../app/page.dto';
 import { PageMetaDto } from '../app/page-meta.dto';
 import { FilterDto } from './filter.dto';
 import { UserEntity } from '../users/user.entity';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class ArticlesService {
   constructor(
     @InjectRepository(ArticleEntity) readonly repo: Repository<ArticleEntity>,
+    @Inject(CACHE_MANAGER) private cacheService: Cache,
   ) {}
 
   async findAll(pageOptionsDto: FilterDto): Promise<PageDto<ArticleEntity>> {
@@ -33,15 +36,12 @@ export class ArticlesService {
     return new PageDto(entities, pageMeta);
   }
 
-  private applyFilters(
-    queryBuilder: SelectQueryBuilder<ArticleEntity>,
-    pageOptionsDto: FilterDto,
-  ) {
-    this.filterByTitle(queryBuilder, pageOptionsDto.title);
-    this.filterByDescription(queryBuilder, pageOptionsDto.description);
-    this.filterByPublishedStatus(queryBuilder, pageOptionsDto.published);
-    this.filterByPublishedAt(queryBuilder, pageOptionsDto.publishedAt);
-    this.filterByAuthor(queryBuilder, pageOptionsDto.authorName);
+  private applyFilters(queryBuilder: SelectQueryBuilder<ArticleEntity>, filter: FilterDto) {
+    this.filterByTitle(queryBuilder, filter.title);
+    this.filterByDescription(queryBuilder, filter.description);
+    this.filterByPublishedStatus(queryBuilder, filter.published);
+    this.filterByPublishedAt(queryBuilder, filter.publishedAt);
+    this.filterByAuthor(queryBuilder, filter.authorName);
   }
 
   private filterByTitle(
@@ -104,29 +104,51 @@ export class ArticlesService {
     return { startDate, endDate };
   }
 
-  public findOneById(id: number): Promise<ArticleEntity | null> {
-    return this.repo.findOneBy({ id });
+  public async findOneById(id: number): Promise<ArticleEntity | null> {
+    const cachedData = await this.cacheService.get(id.toString());
+    if (cachedData) {
+      return cachedData as ArticleEntity;
+    }
+    const article = await this.repo.findOneBy({ id });
+    await this.cacheService.set(id.toString(), article);
+    return article;
   }
 
-  public findOneBySlug(slug: string): Promise<ArticleEntity | null> {
-    return this.repo.findOneBy({ slug });
+  public async findOneBySlug(slug: string): Promise<ArticleEntity | null> {
+    const cachedData = await this.cacheService.get(slug);
+    if (cachedData) {
+      return cachedData as ArticleEntity;
+    }
+    const article = await this.repo.findOneBy({ slug });
+    await this.cacheService.set(slug, article);
+    return article;
   }
 
-  public create(
-    article: CreateArticleDto,
-    user: UserEntity,
-  ): Promise<ArticleEntity> {
+  public create(article: CreateArticleDto, user: UserEntity): Promise<ArticleEntity> {
     const createInput = { ...article, userId: user.id };
     const model = this.repo.create(createInput);
     return this.repo.save(model);
   }
 
-  public update(id: number, article: UpdateArticleDto): Promise<ArticleEntity> {
+  public async update(id: number, article: UpdateArticleDto): Promise<ArticleEntity> {
     const updateInput = { id, ...article };
-    return this.repo.save(updateInput, { reload: true });
+    const updatedItem = await this.repo.save(updateInput, { reload: true });
+    const cachedDataById = await this.cacheService.get(id.toString());
+    const cachedDataBySlug = await this.cacheService.get(updatedItem.slug);
+    if (cachedDataById || cachedDataBySlug) {
+      await this.cacheService.set(id.toString(), updatedItem);
+    }
+    if (cachedDataBySlug) {
+      await this.cacheService.set(updatedItem.slug, updatedItem);
+    }
+    return updatedItem;
   }
 
-  public delete(id: number): Promise<DeleteResult> {
+  public async delete(id: number): Promise<DeleteResult> {
+    const cachedData = await this.cacheService.get(id.toString());
+    if (cachedData) {
+      await this.cacheService.del(id.toString());
+    }
     return this.repo.delete(id);
   }
 }

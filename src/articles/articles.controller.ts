@@ -22,7 +22,6 @@ export class ArticlesController {
   constructor(private readonly articlesService: ArticlesService) {}
 
   @Get()
-  @UseGuards(AuthGuard)
   findAll(@Query() filterDto: FilterDto): Promise<PageDto<ArticleEntity>> {
     return this.articlesService.findAll(filterDto);
   }
@@ -39,10 +38,7 @@ export class ArticlesController {
 
   @Post()
   @UseGuards(AuthGuard)
-  create(
-    @Body() article: CreateArticleDto,
-    @Request() req: any,
-  ): Promise<ArticleEntity> {
+  create(@Body() article: CreateArticleDto, @Request() req: any): Promise<ArticleEntity> {
     return this.articlesService.create(article, req.user);
   }
 

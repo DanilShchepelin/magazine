@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  HttpException,
-  HttpStatus,
-  Injectable,
-} from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { CreateUserDto } from '../users/user.dto';
 import { UserEntity } from '../users/user.entity';
@@ -28,10 +23,7 @@ export class AuthService {
     return this.userService.repo.save(model);
   }
 
-  async login(
-    email: string,
-    password: string,
-  ): Promise<{ access_token: string }> {
+  async login(email: string, password: string): Promise<{ access_token: string }> {
     const user = await this.validateUser(email, password);
 
     if (!user) {
@@ -45,11 +37,12 @@ export class AuthService {
     };
   }
 
-  private async validateUser(
-    email: string,
-    password: string,
-  ): Promise<UserEntity | null> {
-    const user = await this.userService.repo.findOneBy({ email });
+  private async validateUser(email: string, password: string): Promise<UserEntity | null> {
+    const user = await this.userService.repo.findOne({
+      where: { email },
+      select: { id: true, password: true, email: true },
+    });
+    console.log(user);
 
     if (user && bcrypt.compareSync(password, user.password)) {
       return user;

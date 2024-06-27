@@ -8,6 +8,8 @@ import { AuthModule } from './auth/auth.module';
 import { ArticlesModule } from './articles/articles.module';
 import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
+import { CacheModule } from '@nestjs/cache-manager';
+import { RedisOptions } from './config/redis.config';
 
 @Module({
   imports: [
@@ -20,9 +22,10 @@ import databaseConfig from './config/database.config';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: async (configService: ConfigService) =>
-        configService.get('database'),
+      useFactory: async (configService: ConfigService) => configService.get('database'),
     }),
+
+    CacheModule.registerAsync(RedisOptions),
 
     UsersModule,
 
