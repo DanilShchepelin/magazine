@@ -31,11 +31,6 @@ export class ArticlesController {
     return this.articlesService.findOneById(Number(id));
   }
 
-  @Get(':slug')
-  findOneBySlug(@Param('slug') slug: string) {
-    return this.articlesService.findOneBySlug(slug);
-  }
-
   @Post()
   @UseGuards(AuthGuard)
   create(@Body() article: CreateArticleDto, @Request() req: any): Promise<ArticleEntity> {

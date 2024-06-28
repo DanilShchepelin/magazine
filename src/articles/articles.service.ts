@@ -49,7 +49,7 @@ export class ArticlesService {
     title: string | undefined,
   ) {
     if (title) {
-      queryBuilder.where('articles.title ILIKE :title', {
+      queryBuilder.andWhere('articles.title ILIKE :title', {
         title: `%${title}%`,
       });
     }
@@ -110,17 +110,9 @@ export class ArticlesService {
       return cachedData as ArticleEntity;
     }
     const article = await this.repo.findOneBy({ id });
-    await this.cacheService.set(id.toString(), article);
-    return article;
-  }
-
-  public async findOneBySlug(slug: string): Promise<ArticleEntity | null> {
-    const cachedData = await this.cacheService.get(slug);
-    if (cachedData) {
-      return cachedData as ArticleEntity;
-    }
-    const article = await this.repo.findOneBy({ slug });
-    await this.cacheService.set(slug, article);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
+    await this.cacheService.set(id.toString(), article, { ttl: 60 * 60 });
     return article;
   }
 
@@ -134,12 +126,10 @@ export class ArticlesService {
     const updateInput = { id, ...article };
     const updatedItem = await this.repo.save(updateInput, { reload: true });
     const cachedDataById = await this.cacheService.get(id.toString());
-    const cachedDataBySlug = await this.cacheService.get(updatedItem.slug);
-    if (cachedDataById || cachedDataBySlug) {
-      await this.cacheService.set(id.toString(), updatedItem);
-    }
-    if (cachedDataBySlug) {
-      await this.cacheService.set(updatedItem.slug, updatedItem);
+    if (cachedDataById) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error
+      await this.cacheService.set(id.toString(), updatedItem, { ttl: 60 * 60 });
     }
     return updatedItem;
   }
