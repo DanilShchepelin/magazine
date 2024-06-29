@@ -9,7 +9,8 @@ import { ArticlesModule } from './articles/articles.module';
 import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
 import { CacheModule } from '@nestjs/cache-manager';
-import { RedisOptions } from './config/redis.config';
+import * as redisStore from 'cache-manager-redis-store';
+import * as process from 'node:process';
 
 @Module({
   imports: [
@@ -25,7 +26,13 @@ import { RedisOptions } from './config/redis.config';
       useFactory: async (configService: ConfigService) => configService.get('database'),
     }),
 
-    CacheModule.registerAsync(RedisOptions),
+    CacheModule.register({
+      isGlobal: true,
+      store: redisStore,
+      host: process.env.REDIS_HOST,
+      port: process.env.REDIS_PORT,
+      ttl: 15,
+    }),
 
     UsersModule,
 

@@ -110,9 +110,7 @@ export class ArticlesService {
       return cachedData as ArticleEntity;
     }
     const article = await this.repo.findOneBy({ id });
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    await this.cacheService.set(id.toString(), article, { ttl: 60 * 60 });
+    await this.cacheService.set(id.toString(), article);
     return article;
   }
 
@@ -130,9 +128,7 @@ export class ArticlesService {
     const updatedItem = await this.repo.save(updateInput, { reload: true });
     const cachedDataById = await this.cacheService.get(id.toString());
     if (cachedDataById) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error
-      await this.cacheService.set(id.toString(), updatedItem, { ttl: 60 * 60 });
+      await this.cacheService.set(id.toString(), updatedItem);
     }
     return updatedItem;
   }
