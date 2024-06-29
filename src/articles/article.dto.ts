@@ -1,12 +1,6 @@
-import {
-  IsBoolean,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  MaxLength,
-  MinLength,
-} from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 import { Transform } from 'class-transformer';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateArticleDto {
   @IsString()
@@ -15,7 +9,8 @@ export class CreateArticleDto {
   @MaxLength(40)
   @IsNotEmpty()
   @Transform(({ value }) => value?.trim())
-  title?: string;
+  @ApiProperty({ required: false })
+  title: string;
 
   @IsString()
   @IsOptional()
@@ -23,12 +18,14 @@ export class CreateArticleDto {
   @MaxLength(256)
   @IsNotEmpty()
   @Transform(({ value }) => value?.trim())
+  @ApiProperty({ required: false })
   description?: string;
 }
 
 export class UpdateArticleDto extends CreateArticleDto {
   @IsBoolean()
   @IsOptional()
+  @ApiProperty({ required: false })
   published?: boolean;
 
   @IsString()
@@ -36,5 +33,6 @@ export class UpdateArticleDto extends CreateArticleDto {
   @MaxLength(40)
   @IsNotEmpty()
   @Transform(({ value }) => value?.trim())
+  @ApiProperty({ required: false })
   slug?: string;
 }

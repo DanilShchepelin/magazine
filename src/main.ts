@@ -2,9 +2,20 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  app.setGlobalPrefix('api');
+
+  const configSwagger = new DocumentBuilder()
+    .setTitle('Журнал')
+    .setDescription('Описание API методов')
+    .addBearerAuth()
+    .build();
+  const document = SwaggerModule.createDocument(app, configSwagger);
+  SwaggerModule.setup('docs', app, document);
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -12,7 +23,6 @@ async function bootstrap() {
       whitelist: true,
     }),
   );
-  app.setGlobalPrefix('api');
   app.enableCors();
 
   const configService = app.get(ConfigService);
