@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, DeleteResult, Repository, SelectQueryBuilder } from 'typeorm';
 import { ArticleEntity } from './article.entity';
@@ -117,6 +117,12 @@ export class ArticlesService {
   }
 
   public create(article: CreateArticleDto, user: UserEntity): Promise<ArticleEntity> {
+    console.log('зашел в создание');
+    if (!user) {
+      throw new BadRequestException('User is not logged in');
+    }
+    console.log(article);
+    console.log(user);
     const createInput = { ...article, userId: user.id };
     const model = this.repo.create(createInput);
     return this.repo.save(model);
