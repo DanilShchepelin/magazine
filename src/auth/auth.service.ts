@@ -23,7 +23,7 @@ export class AuthService {
     return this.userService.repo.save(model);
   }
 
-  async login(email: string, password: string): Promise<{ access_token: string }> {
+  async login(email: string, password: string): Promise<{ accessToken: string }> {
     const user = await this.validateUser(email, password);
 
     if (!user) {
@@ -33,7 +33,7 @@ export class AuthService {
     const payload = { id: user.id, email: user.email };
 
     return {
-      access_token: this.jwtService.sign(payload),
+      accessToken: this.jwtService.sign(payload),
     };
   }
 

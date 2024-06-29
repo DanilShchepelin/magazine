@@ -14,7 +14,7 @@ import { ArticlesService } from './articles.service';
 import { ArticleEntity } from './article.entity';
 import { CreateArticleDto, UpdateArticleDto } from './article.dto';
 import { PageDto } from '../app/page.dto';
-import { FilterDto } from './filter.dto';
+import { QueryDto } from './query.dto';
 import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('articles')
@@ -22,7 +22,7 @@ export class ArticlesController {
   constructor(private readonly articlesService: ArticlesService) {}
 
   @Get()
-  findAll(@Query() filterDto: FilterDto): Promise<PageDto<ArticleEntity>> {
+  findAll(@Query() filterDto: QueryDto): Promise<PageDto<ArticleEntity>> {
     return this.articlesService.findAll(filterDto);
   }
 

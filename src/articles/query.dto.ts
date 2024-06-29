@@ -2,7 +2,7 @@ import { PageOptionsDto } from '../app/page-options.dto';
 import { IsBoolean, IsOptional, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
 
-export class FilterDto extends PageOptionsDto {
+export class QueryDto extends PageOptionsDto {
   @IsString()
   @IsOptional()
   readonly title?: string;

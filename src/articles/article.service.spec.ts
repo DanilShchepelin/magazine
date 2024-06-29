@@ -1,16 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ArticlesService } from './articles.service';
-import { CACHE_MANAGER, CacheModule } from '@nestjs/cache-manager';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import appConfig from '../config/app.config';
-import databaseConfig from '../config/database.config';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { RedisOptions } from '../config/redis.config';
-import { ArticlesModule } from './articles.module';
-import { UsersModule } from '../users/users.module';
-import { AuthModule } from '../auth/auth.module';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { UsersService } from '../users/users.service';
 import { UserEntity } from '../users/user.entity';
+import { AppModule } from '../app.module';
+import { ArticleEntity } from './article.entity';
+import { QueryDto } from './query.dto';
 
 const mockCacheManager = {
   set: jest.fn(),
@@ -21,30 +16,11 @@ describe('ArticlesService', () => {
   let service: ArticlesService;
   let userService: UsersService;
   let user: UserEntity;
+  let article: ArticleEntity;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [
-        ConfigModule.forRoot({
-          isGlobal: true,
-          expandVariables: true,
-          load: [appConfig, databaseConfig],
-        }),
-
-        TypeOrmModule.forRootAsync({
-          imports: [ConfigModule],
-          inject: [ConfigService],
-          useFactory: async (configService: ConfigService) => configService.get('database'),
-        }),
-
-        CacheModule.registerAsync(RedisOptions),
-
-        AuthModule,
-
-        ArticlesModule,
-
-        UsersModule,
-      ],
+      imports: [AppModule],
       controllers: [],
       providers: [{ provide: CACHE_MANAGER, useValue: mockCacheManager }],
     }).compile();
@@ -59,25 +35,65 @@ describe('ArticlesService', () => {
       lastName: 'Test',
     });
     user = await userService.repo.save(userEntity);
+
+    const articleEntity = service.repo.create({
+      title: 'Test',
+      description: 'Test description',
+      userId: user.id,
+    });
+    article = await service.repo.save(articleEntity);
   });
 
-  afterAll(() => {
-    userService.repo.delete(user.id);
+  afterAll(async () => {
+    await userService.repo.delete(user.id);
+    await service.repo.delete(article.id);
   });
 
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
 
-  it('should create article', async () => {
-    console.log('зашел в тест');
+  it('получение всех статей', async () => {
+    const queryParams = new QueryDto();
+    const data = await service.findAll(queryParams);
+    const meta = data.meta;
+    const queryData = data.data;
+    expect(meta.page).toBe(1);
+    expect(meta.take).toBe(10);
+    expect(meta.itemCount).toBe(queryData.length);
+  });
+
+  it('получение стати по id', async () => {
+    const foundedArticle = await service.findOneById(article.id);
+    expect(foundedArticle.title).toBe(article.title);
+    expect(foundedArticle.description).toBe(article.description);
+    expect(foundedArticle.userId).toBe(article.userId);
+    expect(foundedArticle.userId).toBe(user.id);
+  });
+
+  it('создание статьи', async () => {
     const article = await service.create({ title: 'Test', description: 'Test description' }, user);
-    console.log('создал статью');
     const foundedArticle = await service.repo.findOne({
       where: { id: article.id },
-      relations: { user: true },
     });
 
-    expect(foundedArticle).toBe(article);
+    expect(foundedArticle.title).toBe(article.title);
+    expect(foundedArticle.description).toBe(article.description);
+    expect(foundedArticle.userId).toBe(article.userId);
+    expect(foundedArticle.userId).toBe(user.id);
+  });
+
+  it('удаление статьи', async () => {
+    const article = await service.create(
+      { title: 'Test title', description: 'Test description' },
+      user,
+    );
+    await service.delete(article.id);
+
+    const foundedArticle = await service.repo.findOne({
+      where: { id: article.id },
+    });
+
+    expect(foundedArticle).toBeNull();
   });
 });

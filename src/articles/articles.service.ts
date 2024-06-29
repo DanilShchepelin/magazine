@@ -5,7 +5,7 @@ import { ArticleEntity } from './article.entity';
 import { CreateArticleDto, UpdateArticleDto } from './article.dto';
 import { PageDto } from '../app/page.dto';
 import { PageMetaDto } from '../app/page-meta.dto';
-import { FilterDto } from './filter.dto';
+import { QueryDto } from './query.dto';
 import { UserEntity } from '../users/user.entity';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
@@ -17,26 +17,26 @@ export class ArticlesService {
     @Inject(CACHE_MANAGER) private cacheService: Cache,
   ) {}
 
-  async findAll(pageOptionsDto: FilterDto): Promise<PageDto<ArticleEntity>> {
+  async findAll(queryDto: QueryDto): Promise<PageDto<ArticleEntity>> {
     const queryBuilder = this.repo.createQueryBuilder('articles');
 
     queryBuilder
-      .orderBy('articles.createdAt', pageOptionsDto.order)
-      .skip(pageOptionsDto.skip)
-      .take(pageOptionsDto.take)
+      .orderBy('articles.createdAt', queryDto.order)
+      .skip(queryDto.skip)
+      .take(queryDto.take)
       .setFindOptions({ relations: { user: true } });
 
-    this.applyFilters(queryBuilder, pageOptionsDto);
+    this.applyFilters(queryBuilder, queryDto);
 
     const itemCount = await queryBuilder.getCount();
     const { entities } = await queryBuilder.getRawAndEntities();
 
-    const pageMeta = new PageMetaDto({ itemCount, pageOptionsDto });
+    const pageMeta = new PageMetaDto({ itemCount, pageOptionsDto: queryDto });
 
     return new PageDto(entities, pageMeta);
   }
 
-  private applyFilters(queryBuilder: SelectQueryBuilder<ArticleEntity>, filter: FilterDto) {
+  private applyFilters(queryBuilder: SelectQueryBuilder<ArticleEntity>, filter: QueryDto) {
     this.filterByTitle(queryBuilder, filter.title);
     this.filterByDescription(queryBuilder, filter.description);
     this.filterByPublishedStatus(queryBuilder, filter.published);
@@ -117,12 +117,9 @@ export class ArticlesService {
   }
 
   public create(article: CreateArticleDto, user: UserEntity): Promise<ArticleEntity> {
-    console.log('зашел в создание');
     if (!user) {
       throw new BadRequestException('User is not logged in');
     }
-    console.log(article);
-    console.log(user);
     const createInput = { ...article, userId: user.id };
     const model = this.repo.create(createInput);
     return this.repo.save(model);
