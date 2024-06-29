@@ -42,7 +42,6 @@ export class AuthService {
       where: { email },
       select: { id: true, password: true, email: true },
     });
-    console.log(user);
 
     if (user && bcrypt.compareSync(password, user.password)) {
       return user;

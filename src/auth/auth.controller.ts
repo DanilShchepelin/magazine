@@ -14,7 +14,7 @@ export class AuthController {
   }
 
   @Post('login')
-  login(@Body() input: LoginDto): Promise<{ access_token: string }> {
+  login(@Body() input: LoginDto): Promise<{ accessToken: string }> {
     return this.service.login(input.email, input.password);
   }
 }
