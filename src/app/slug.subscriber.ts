@@ -1,10 +1,5 @@
-import {
-  EntitySubscriberInterface,
-  EventSubscriber,
-  InsertEvent,
-  UpdateEvent,
-} from 'typeorm';
-import { ArticleEntity } from './article.entity';
+import { EntitySubscriberInterface, EventSubscriber, InsertEvent, UpdateEvent } from 'typeorm';
+import { ArticleEntity } from '../articles/article.entity';
 import slugify from 'slugify';
 
 @EventSubscriber()
@@ -14,14 +9,8 @@ export class UserSubscriber implements EntitySubscriberInterface {
   }
 
   async beforeInsert(event: InsertEvent<ArticleEntity>) {
-    if (
-      event.metadata.findColumnWithDatabaseName('slug') &&
-      !event.entity.slug
-    ) {
-      event.entity.slug = await this.createUniqueSlug(
-        event,
-        event.entity.title,
-      );
+    if (event.metadata.findColumnWithDatabaseName('slug') && !event.entity.slug) {
+      event.entity.slug = await this.createUniqueSlug(event, event.entity.title);
     }
   }
 

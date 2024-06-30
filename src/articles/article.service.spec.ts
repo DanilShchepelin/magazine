@@ -3,9 +3,9 @@ import { ArticlesService } from './articles.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { UsersService } from '../users/users.service';
 import { UserEntity } from '../users/user.entity';
-import { AppModule } from '../app.module';
 import { ArticleEntity } from './article.entity';
 import { QueryDto } from './query.dto';
+import { TestImports } from '../../test/test-imports';
 
 const mockCacheManager = {
   set: jest.fn(),
@@ -20,7 +20,7 @@ describe('ArticlesService', () => {
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
+      imports: TestImports,
       controllers: [],
       providers: [{ provide: CACHE_MANAGER, useValue: mockCacheManager }],
     }).compile();
@@ -39,7 +39,7 @@ describe('ArticlesService', () => {
     const articleEntity = service.repo.create({
       title: 'Test',
       description: 'Test description',
-      userId: user.id,
+      authorId: user.id,
     });
     article = await service.repo.save(articleEntity);
   });
@@ -67,8 +67,8 @@ describe('ArticlesService', () => {
     const foundedArticle = await service.findOneById(article.id);
     expect(foundedArticle.title).toBe(article.title);
     expect(foundedArticle.description).toBe(article.description);
-    expect(foundedArticle.userId).toBe(article.userId);
-    expect(foundedArticle.userId).toBe(user.id);
+    expect(foundedArticle.authorId).toBe(article.authorId);
+    expect(foundedArticle.authorId).toBe(user.id);
   });
 
   it('создание статьи', async () => {
@@ -79,8 +79,8 @@ describe('ArticlesService', () => {
 
     expect(foundedArticle.title).toBe(article.title);
     expect(foundedArticle.description).toBe(article.description);
-    expect(foundedArticle.userId).toBe(article.userId);
-    expect(foundedArticle.userId).toBe(user.id);
+    expect(foundedArticle.authorId).toBe(article.authorId);
+    expect(foundedArticle.authorId).toBe(user.id);
   });
 
   it('удаление статьи', async () => {

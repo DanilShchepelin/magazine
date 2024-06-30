@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from '../users/users.service';
 import { UserEntity } from '../users/user.entity';
-import { AppModule } from '../app.module';
 import { AuthService } from './auth.service';
 import { BadRequestException, HttpException } from '@nestjs/common';
+import { TestImports } from '../../test/test-imports';
 
 describe('ArticlesService', () => {
   let service: AuthService;
@@ -12,7 +12,7 @@ describe('ArticlesService', () => {
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
+      imports: TestImports,
       controllers: [],
       providers: [],
     }).compile();
