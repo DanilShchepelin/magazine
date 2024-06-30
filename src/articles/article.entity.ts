@@ -30,15 +30,15 @@ export class ArticleEntity {
   })
   publishedAt: Date | null;
 
-  @Column() userId: number;
+  @Column() authorId: number;
   @ManyToOne(() => UserEntity, {
     cascade: true,
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
     nullable: true,
   })
-  @JoinColumn({ name: 'userId' })
-  user: UserEntity;
+  @JoinColumn({ name: 'authorId' })
+  author: UserEntity;
 
   @Column() @Index({ unique: true }) slug: string;
 

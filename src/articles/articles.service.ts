@@ -24,7 +24,7 @@ export class ArticlesService {
       .orderBy('articles.createdAt', queryDto.order)
       .skip(queryDto.skip)
       .take(queryDto.take)
-      .setFindOptions({ relations: { user: true } });
+      .setFindOptions({ relations: { author: true } });
 
     this.applyFilters(queryBuilder, queryDto);
 
@@ -118,7 +118,7 @@ export class ArticlesService {
     if (!user) {
       throw new BadRequestException('User is not logged in');
     }
-    const createInput = { ...article, userId: user.id };
+    const createInput = { ...article, authorId: user.id };
     const model = this.repo.create(createInput);
     return this.repo.save(model);
   }

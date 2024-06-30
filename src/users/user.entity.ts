@@ -18,7 +18,7 @@ export class UserEntity {
   @Column()
   lastName: string;
 
-  @Column()
+  @Column({ nullable: true })
   patronymic: string;
 
   @Column()

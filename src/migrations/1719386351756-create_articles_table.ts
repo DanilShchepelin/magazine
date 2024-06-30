@@ -1,10 +1,4 @@
-import {
-  MigrationInterface,
-  QueryRunner,
-  Table,
-  TableForeignKey,
-  TableIndex,
-} from 'typeorm';
+import { MigrationInterface, QueryRunner, Table, TableForeignKey, TableIndex } from 'typeorm';
 
 export class CreateArticlesTable1719386351756 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -18,44 +12,53 @@ export class CreateArticlesTable1719386351756 implements MigrationInterface {
             isPrimary: true,
             isGenerated: true,
             generationStrategy: 'increment',
+            comment: 'Уникальный идентификатор статьи',
           },
           {
             name: 'title',
             type: 'varchar',
+            comment: 'Заголовок статьи',
           },
           {
             name: 'description',
             type: 'text',
+            comment: 'Описание статьи',
           },
           {
             name: 'published',
             type: 'boolean',
             default: false,
+            comment: 'Флаг опубликована ли статья',
           },
           {
             name: 'publishedAt',
             type: 'timestamptz',
             isNullable: true,
+            comment: 'Дата публикации',
           },
           {
-            name: 'userId',
+            name: 'authorId',
             type: 'int',
             isNullable: true,
+            comment: 'Уникальный идентификатор автора статьи',
           },
           {
             name: 'createdAt',
             type: 'timestamptz',
             default: 'now()',
+            comment: 'Дата создания',
           },
           {
             name: 'slug',
             type: 'varchar',
             isUnique: true,
+            comment: 'ЧПУ',
           },
           {
             name: 'updatedAt',
             type: 'timestamptz',
             default: 'now()',
+            comment: 'Дата последнего обновления',
           },
         ],
       }),
@@ -73,7 +76,7 @@ export class CreateArticlesTable1719386351756 implements MigrationInterface {
     await queryRunner.createForeignKey(
       'articles',
       new TableForeignKey({
-        columnNames: ['userId'],
+        columnNames: ['authorId'],
         referencedColumnNames: ['id'],
         referencedTableName: 'users',
         onDelete: 'CASCADE',
@@ -84,9 +87,7 @@ export class CreateArticlesTable1719386351756 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     const table = await queryRunner.getTable('articles');
-    const foreignKey = table.foreignKeys.find(
-      (fk) => fk.columnNames.indexOf('userId') !== -1,
-    );
+    const foreignKey = table.foreignKeys.find((fk) => fk.columnNames.indexOf('authorId') !== -1);
     await queryRunner.dropForeignKey('articles', foreignKey);
     await queryRunner.dropIndex('articles', 'IDX_SLUG');
     await queryRunner.dropTable('articles');
