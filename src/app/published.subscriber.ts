@@ -1,18 +1,8 @@
-import {
-  EntitySubscriberInterface,
-  EventSubscriber,
-  InsertEvent,
-  UpdateEvent,
-} from 'typeorm';
-import { ArticleEntity } from './article.entity';
+import { EntitySubscriberInterface, EventSubscriber, InsertEvent, UpdateEvent } from 'typeorm';
 
 @EventSubscriber()
-export class UserSubscriber implements EntitySubscriberInterface {
-  listenTo() {
-    return ArticleEntity;
-  }
-
-  async beforeInsert(event: InsertEvent<ArticleEntity>) {
+export class PublishedSubscriber implements EntitySubscriberInterface {
+  async beforeInsert(event: InsertEvent<any>) {
     if (
       event.metadata.findColumnWithDatabaseName('publishedAt') &&
       Object.prototype.hasOwnProperty.call(event.entity, 'published') &&
@@ -24,18 +14,13 @@ export class UserSubscriber implements EntitySubscriberInterface {
     }
   }
 
-  async beforeUpdate(event: UpdateEvent<ArticleEntity>) {
-    if (
-      event.metadata.findColumnWithDatabaseName('publishedAt') &&
-      event.entity
-    ) {
+  async beforeUpdate(event: UpdateEvent<any>) {
+    if (event.metadata.findColumnWithDatabaseName('publishedAt') && event.entity) {
       const isPublishedUpdated = Boolean(
         event.updatedColumns.find((item) => item.propertyName === 'published'),
       );
       const isPublishedAtUpdated = Boolean(
-        event.updatedColumns.find(
-          (item) => item.propertyName === 'publishedAt',
-        ),
+        event.updatedColumns.find((item) => item.propertyName === 'publishedAt'),
       );
 
       if (isPublishedUpdated && !isPublishedAtUpdated) {

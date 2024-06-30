@@ -16,7 +16,13 @@ import { CreateArticleDto, UpdateArticleDto } from './article.dto';
 import { PageDto } from '../app/page.dto';
 import { QueryDto } from './query.dto';
 import { AuthGuard } from '../auth/auth.guard';
-import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { DeleteResult } from 'typeorm';
 
 @ApiTags('articles')
@@ -67,6 +73,7 @@ export class ArticlesController {
    */
   @Post()
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Создание статьи',
   })
@@ -86,6 +93,7 @@ export class ArticlesController {
    */
   @Patch(':id')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Изменение данных статьи',
   })
@@ -104,6 +112,7 @@ export class ArticlesController {
    */
   @Delete(':id')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Удаление статьи',
   })
